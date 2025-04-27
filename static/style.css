@@ -1,0 +1,252 @@
+/* static/style.css */
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+    }
+    
+    nav {
+    background-color: #333;
+    color: #fff;
+    padding: 1rem;
+    display: flex;
+    /* justify-content: space-between; */ /* 로고/홈 링크와 나머지 분리 */
+    align-items: center;
+    }
+    
+    nav a {
+    color: #fff;
+    text-decoration: none;
+    margin: 0 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+    }
+    
+    nav a:first-child { /* 홈 링크 */
+    margin-right: auto; /* 홈 링크를 왼쪽 끝으로 */
+    }
+    
+    
+    nav a:hover {
+    background-color: #555;
+    }
+    
+    nav .welcome-msg { /* 클래스 추가 필요 시 */
+    margin-left: 20px; /* 로그인/가입 버튼과 간격 */
+    font-style: italic;
+    /* color: #ccc; */ /* 약간 흐리게 */
+    }
+    
+    
+    main {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    }
+    
+    h1, h2, h3 {
+    color: #333;
+    margin-bottom: 1rem;
+    }
+    
+    hr {
+    border: 0;
+    height: 1px;
+    background: #ddd;
+    margin: 1.5rem 0;
+    }
+    
+    footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding: 1rem;
+    color: #777;
+    font-size: 0.9em;
+    }
+    
+    /* Forms */
+    form div {
+    margin-bottom: 1rem;
+    }
+    
+    label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    }
+    
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"] { /* tel 타입 추가 */
+    width: 100%;
+    padding: 0.7rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* padding 포함한 크기 계산 */
+    }
+    
+    button, .button { /* .button 클래스 추가 (<a> 태그용) */
+    display: inline-block;
+    background-color: #5cb85c;
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none; /* 링크 스타일 제거 */
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin-right: 10px; /* 버튼 간 간격 */
+    margin-top: 10px; /* 위쪽 여백 */
+    }
+    
+    button:hover, .button:hover {
+    background-color: #4cae4c;
+    }
+    
+    button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    }
+    
+    /* Lists */
+    ul {
+    list-style: none;
+    padding: 0;
+    }
+    
+    ul li {
+    background-color: #eee;
+    margin-bottom: 8px;
+    padding: 10px;
+    border-radius: 4px;
+    }
+    
+    ul li a {
+    text-decoration: none;
+    color: #337ab7;
+    font-weight: bold;
+    }
+    ul li a:hover {
+    text-decoration: underline;
+    }
+    
+    /* Tables */
+    table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    }
+    
+    th, td {
+    border: 1px solid #ddd;
+    padding: 0.8rem;
+    text-align: left;
+    }
+    
+    th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    }
+    
+    tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+    }
+    
+    /* Flash Messages */
+    .flashes {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1rem;
+    }
+    .flashes li {
+    padding: 0.8rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    color: #fff;
+    }
+    .flashes li.success { background-color: #5cb85c; }
+    .flashes li.error { background-color: #d9534f; }
+    .flashes li.warning { background-color: #f0ad4e; color: #333; }
+    
+    
+    /* Quiz Specific Styles */
+    #quiz-container {
+    border: 1px solid #ddd;
+    padding: 1.5rem;
+    border-radius: 8px;
+    }
+    
+    #progress, #timer {
+    font-size: 0.9em;
+    color: #555;
+    margin-bottom: 0.5rem;
+    }
+    
+    #question-text {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    }
+    
+    #options-area .option-button { /* 클래스 선택자로 변경 */
+    display: block; /* 버튼을 블록 요소로 만들어 세로로 나열 */
+    width: 100%;
+    margin-bottom: 10px; /* 버튼 사이 간격 */
+    padding: 12px;
+    text-align: left; /* 텍스트 왼쪽 정렬 */
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    color: #333;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    }
+    
+    #options-area .option-button:hover:not(:disabled) {
+    background-color: #e0e0e0;
+    }
+    
+    #options-area .option-button.selected {
+    background-color: #d1ecf1; /* 선택된 버튼 배경색 */
+    border-color: #bee5eb;
+    font-weight: bold;
+    }
+    
+    #options-area .option-button.correct {
+    background-color: #dff0d8; /* 정답 버튼 배경색 */
+    border-color: #d6e9c6;
+    color: #3c763d;
+    }
+    
+    #options-area .option-button.incorrect {
+    background-color: #f2dede; /* 오답 버튼 배경색 */
+    border-color: #ebccd1;
+    color: #a94442;
+    }
+    
+    #options-area .option-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+    }
+    
+    #feedback-area {
+    margin-top: 15px;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 4px;
+    }
+    
+    .final-score {
+    font-size: 1.5em;
+    margin: 1.5rem 0;
+    text-align: center;
+    }

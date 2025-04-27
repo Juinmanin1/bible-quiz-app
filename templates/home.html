@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utama</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('home') }}">Utama</a>
+        {% if user %}
+            <span>Selamat datang, {{ username }}!</span>
+            <a href="{{ url_for('select_book') }}">Mula Kuiz</a>{# Tambah pautan Mula Kuiz #}
+            <a href="{{ url_for('my_scores') }}">Skor Saya</a>
+            <a href="{{ url_for('global_leaderboard') }}">Papan Pendahulu Global</a>{# Pautan baru #}
+            <a href="{{ url_for('logout') }}">Log Keluar</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Log Masuk</a>
+            <a href="{{ url_for('signup') }}">Daftar</a>
+        {% endif %}
+    </nav>
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <div class="card"> {# Menggunakan gaya card dari CSS #}
+             <h2>Selamat Datang ke Kuiz Alkitab!</h2>
+            {% if user %}
+                {# Terjemahan teks Korea #}
+                <p>Selamat datang, {{ username }}! Sila tekan Mulakan untuk memulakan kuiz Alkitab.</p>
+                <a href="{{ url_for('select_book') }}" class="button">Mulakan</a> {# Menggunakan kelas button dari CSS #}
+            {% else %}
+                <p>Sila log masuk untuk memulakan kuiz.</p>
+                <a href="{{ url_for('login') }}" class="button">Log Masuk untuk Mula</a> {# Menggunakan kelas button dari CSS #}
+            {% endif %}
+        </div>
+    </main>
+    <footer>
+        © 2024 Aplikasi KUIZ ALKITAB
+    </footer>
+</body>
+</html>

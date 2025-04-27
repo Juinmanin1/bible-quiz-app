@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skor Peribadi Saya</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Tambahan atau pengubahsuaian styling untuk skor peribadi */
+        main .card { /* Gunakan gaya card dalam main */
+            margin: 40px auto;
+            max-width: 600px;
+            text-align: center;
+        }
+        .card h2 {
+            margin-bottom: 20px;
+        }
+        .card ul {
+            list-style: none;
+            padding: 0;
+            text-align: left; /* Kekalkan penjajaran kiri untuk senarai */
+        }
+        .card li {
+            padding: 10px 0; /* Padding atas/bawah, tiada kiri/kanan */
+            border-bottom: 1px solid #eee;
+            display: flex; /* Gunakan flexbox untuk penjajaran */
+            justify-content: space-between; /* Sebarkan elemen */
+            align-items: center; /* Penjajaran tengah menegak */
+            font-size: 1em;
+            color: #555;
+        }
+         .card li span { /* Gaya untuk teks di dalam li */
+            padding: 0 5px; /* Ruang di dalam span */
+         }
+         .card li span:first-child {
+             font-weight: bold;
+         }
+         .card p {
+             margin-bottom: 15px;
+         }
+         .card .button { /* Gaya untuk butang dalam card */
+             margin-top: 20px;
+         }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('home') }}">Utama</a>
+        {% if session.user %}
+            <span>Selamat datang, {{ session.username }}!</span>
+             <a href="{{ url_for('select_book') }}">Mula Kuiz</a>{# Tambah pautan Mula Kuiz #}
+            <a href="{{ url_for('my_scores') }}">Skor Saya</a>
+             <a href="{{ url_for('global_leaderboard') }}">Papan Pendahulu Global</a>{# Pautan baru #}
+            <a href="{{ url_for('logout') }}">Log Keluar</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Log Masuk</a>
+            <a href="{{ url_for('signup') }}">Daftar</a>
+        {% endif %}
+    </nav>
+     <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <div class="card">
+            <h2>Skor Peribadi Saya</h2>
+            {% if scores %}
+                <ul>
+                    {% for score in scores %}
+                        {# Akses nama kitab melalui relasi bible_books #}
+                        <li>
+                            <span>Kitab: {{ score.get('bible_books').get('name', 'Tidak Diketahui') if score.get('bible_books') else 'Tidak Diketahui' }}</span>
+                            <span>Skor: {{ score.get('score', 'N/A') }}</span>
+                            <span>Dicapai pada: {{ score.get('achieved_at') | format_datetime }}</span>{# Gunakan get dengan nilai lalai #}
+                        </li>
+                    {% endfor %}
+                </ul>
+                {# Gunakan kelas button dari style.css #}
+                <a href="{{ url_for('select_book') }}" class="button">Mula Kuiz Baru</a>
+                 <a href="{{ url_for('global_leaderboard') }}" class="button">Lihat Papan Pendahulu Global</a>{# Pautan papan pendahulu global #}
+            {% else %}
+                <p>Anda belum melengkapkan sebarang kuiz lagi.</p>
+                {# Gunakan kelas button dari style.css #}
+                <a href="{{ url_for('select_book') }}" class="button">Mula Kuiz Baru</a>
+                 <a href="{{ url_for('global_leaderboard') }}" class="button">Lihat Papan Pendahulu Global</a>{# Pautan papan pendahulu global #}
+            {% endif %}
+        </div>
+     </main>
+    <footer>
+        © 2024 Aplikasi KUIZ ALKITAB
+    </footer>
+</body>
+</html>

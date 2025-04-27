@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papan Pendahulu Global</title>
+     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Styling tambahan khusus untuk halaman papan pendahulu global */
+        main .card {
+            margin: 40px auto;
+            max-width: 700px; /* Mungkin sedikit lebih lebar untuk memuatkan nama kitab */
+            text-align: center;
+        }
+         .card h2 {
+             margin-bottom: 20px;
+         }
+         .leaderboard-list li { /* Gaya khusus untuk item senarai papan pendahulu */
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+         }
+         .leaderboard-list li span {
+             padding: 0 5px;
+         }
+          .leaderboard-list li span:first-child {
+             font-weight: bold;
+             flex-grow: 1;
+             text-align: left;
+         }
+          .leaderboard-list li .score {
+             font-weight: bold;
+             color: #28a745; /* Warna hijau untuk skor */
+             text-align: right;
+             width: 50px; /* Berikan lebar tetap untuk skor jika perlu */
+         }
+         .leaderboard-list li .book-info {
+             font-size: 0.9em;
+             color: #555;
+             text-align: right;
+             width: 150px; /* Berikan lebar tetap untuk nama kitab */
+              margin-left: 10px;
+         }
+
+         .card p {
+             margin-bottom: 15px;
+         }
+         .card .button {
+             margin-top: 20px;
+         }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('home') }}">Utama</a>
+        {% if session.user %}
+            <span>Selamat datang, {{ session.username }}!</span>
+            <a href="{{ url_for('select_book') }}">Mula Kuiz</a>
+            <a href="{{ url_for('my_scores') }}">Skor Saya</a>
+             <a href="{{ url_for('global_leaderboard') }}">Papan Pendahulu Global</a>{# Pautan baru #}
+            <a href="{{ url_for('logout') }}">Log Keluar</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Log Masuk</a>
+            <a href="{{ url_for('signup') }}">Daftar</a>
+        {% endif %}
+    </nav>
+    <main>
+         {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <div class="card">
+            <h2>Papan Pendahulu Global (Top 20)</h2>{# Nyatakan Top 20 #}
+            {% if leaderboard %}
+                <ul class="leaderboard-list"> {# Gunakan kelas untuk gaya spesifik #}
+                    {% for entry in leaderboard %}
+                        {# Akses nama kitab melalui relasi bible_books #}
+                        <li>
+                            <span>{{ loop.index }}. {{ entry.get('username', 'N/A') }}</span>{# Paparkan kedudukan #}
+                             <span class="book-info">({{ entry.get('bible_books').get('name', 'Tidak Diketahui') if entry.get('bible_books') else 'Tidak Diketahui' }})</span>{# Paparkan nama kitab #}
+                            <span class="score">{{ entry.get('score', 'N/A') }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Tiada skor dalam papan pendahulu global lagi.</p>
+            {% endif %}
+             {# Gunakan kelas button dari style.css #}
+            <a href="{{ url_for('select_book') }}" class="button">Mula Kuiz Baru</a>
+        </div>
+    </main>
+    <footer>
+        © 2024 Aplikasi KUIZ ALKITAB
+    </footer>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papan Pendahulu: {{ book_name }}</title>
+     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Tambahan atau pengubahsuaian styling untuk papan pendahulu */
+         main .card { /* Gunakan gaya card dalam main */
+            margin: 40px auto;
+            max-width: 600px;
+            text-align: center;
+        }
+        .card h2 {
+            margin-bottom: 20px;
+        }
+        .card ul {
+            list-style: none;
+            padding: 0;
+            text-align: left; /* Kekalkan penjajaran kiri */
+        }
+        .card li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+             font-size: 1em;
+             color: #555;
+        }
+         .card li span {
+             padding: 0 5px;
+         }
+         .card li span:first-child {
+             font-weight: bold;
+         }
+         .card p {
+             margin-bottom: 15px;
+         }
+        .card .button { /* Gaya untuk butang dalam card */
+             margin-top: 20px;
+         }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('home') }}">Utama</a>
+        {% if session.user %}
+            <span>Selamat datang, {{ session.username }}!</span>
+             <a href="{{ url_for('select_book') }}">Mula Kuiz</a>{# Tambah pautan Mula Kuiz #}
+            <a href="{{ url_for('my_scores') }}">Skor Saya</a>
+             <a href="{{ url_for('global_leaderboard') }}">Papan Pendahulu Global</a>{# Pautan baru #}
+            <a href="{{ url_for('logout') }}">Log Keluar</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Log Masuk</a>
+            <a href="{{ url_for('signup') }}">Daftar</a>
+        {% endif %}
+    </nav>
+     <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <div class="card">
+            <h2>Papan Pendahulu: {{ book_name }} (Top 10)</h2> {# Nyatakan Top 10 #}
+            {% if leaderboard %}
+                <ul>
+                    {% for entry in leaderboard %}
+                        <li>
+                            <span>{{ loop.index }}. {{ entry.get('username', 'N/A') }}</span>{# Paparkan kedudukan #}
+                            <span>{{ entry.get('score', 'N/A') }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Tiada skor dalam papan pendahulu untuk kitab ini lagi.</p>
+            {% endif %}
+            {# Gunakan kelas button dari style.css #}
+            <a href="{{ url_for('select_book') }}" class="button">Mula Kuiz Baru</a>
+             <a href="{{ url_for('global_leaderboard') }}" class="button">Lihat Papan Pendahulu Global</a>{# Pautan papan pendahulu global #}
+        </div>
+     </main>
+    <footer>
+        © 2024 Aplikasi KUIZ ALKITAB
+    </footer>
+</body>
+</html>

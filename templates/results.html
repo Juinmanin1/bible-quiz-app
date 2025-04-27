@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keputusan Kuiz</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Tambahan atau pengubahsuaian styling untuk keputusan */
+        main .card { /* Gunakan gaya card dalam main */
+            margin: 40px auto; /* Ruang atas/bawah automatik, tengah */
+            max-width: 600px;
+            text-align: center;
+        }
+        .card h2 {
+            font-size: 2em; /* Saiz tajuk lebih 크게 */
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .card p {
+            font-size: 1.2em; /* Saiz font lebih besar */
+            margin-bottom: 15px;
+            color: #555;
+        }
+        .card .btn { /* Gaya untuk butang dalam card */
+            margin: 10px 5px; /* Ruang sekitar butang */
+            display: inline-block; /* Pastikan butang di baris yang sama */
+        }
+        .score-highlight { /* Gaya untuk menonjolkan skor */
+            font-size: 1.5em; /* Saiz font lebih besar */
+            font-weight: bold;
+            color: #28a745; /* Warna hijau */
+        }
+        .highest-score { /* Gaya untuk skor tertinggi peribadi */
+            font-size: 1em;
+            color: #555;
+        }
+        .result-message { /* Gaya untuk mesej keputusan */
+            font-size: 1.4em; /* Saiz font 더 besar */
+            font-weight: bold;
+            margin: 20px 0; /* Ruang atas/bawah */
+        }
+        .result-message.pass { /* Gaya untuk mesej 합격 */
+            color: #28a745; /* Hijau */
+        }
+        .result-message.fail { /* Gaya untuk mesej 불합격 */
+            color: #dc3545; /* Merah */
+        }
+        .result-details { /* Gaya untuk butiran keputusan */
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('home') }}">Utama</a>
+        {% if session.user %}
+            <span>Selamat datang, {{ session.username }}!</span>
+            <a href="{{ url_for('select_book') }}">Mula Kuiz</a>{# Tambah pautan Mula Kuiz #}
+            <a href="{{ url_for('my_scores') }}">Skor Saya</a>
+            <a href="{{ url_for('global_leaderboard') }}">Papan Pendahulu Global</a>{# Pautan baru #}
+            <a href="{{ url_for('logout') }}">Log Keluar</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Log Masuk</a>
+            <a href="{{ url_for('signup') }}">Daftar</a>
+        {% endif %}
+    </nav>
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <div class="card">
+            <h2>Keputusan Kuiz</h2> {# Tajuk generik #}
+            <div class="result-details">
+                <p>Kitab: {{ book_name }}</p>
+                <p>Skor Anda: <span class="score-highlight">{{ score }} / {{ total_questions }}</span></p> {# 퍼센트 표시 제거 #}
+                {% if current_highest_score is not none %} {# Semak jika skor tertinggi peribadi wujud #}
+                    <p class="highest-score">Skor Tertinggi Peribadi Anda untuk Kitab Ini: {{ current_highest_score }}</p>
+                {% endif %}
+            </div>
+
+            <div class="result-message">
+                <p>Kerja yang hebat! Teruskan cabaran anda di bab seterusnya!</p>
+            </div>
+
+            {# Gunakan kelas button dari style.css #}
+            <a href="{{ url_for('select_book') }}" class="button">Mula Kuiz Baru</a>
+            <a href="{{ url_for('leaderboard', book_id=book_id) }}" class="button">Lihat Papan Pendahulu Kitab Ini</a>{# Pautan papan pendahulu spesifik kitab #}
+            <a href="{{ url_for('global_leaderboard') }}" class="button">Lihat Papan Pendahulu Global</a>{# Pautan papan pendahulu global #}
+        </div>
+    </main>
+    <footer>
+        © 2024 Aplikasi KUIZ ALKITAB
+    </footer>
+
+    <script>
+        // Optional: JavaScript to play sound if needed
+        console.log("Results page loaded.");
+    </script>
+</body>
+</html>

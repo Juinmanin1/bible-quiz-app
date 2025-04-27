@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuiz: {{ book_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        main .card {
+            margin: 40px auto;
+            max-width: 600px;
+            text-align: center;
+        }
+        .card h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        #quiz-container {
+            margin-top: 20px;
+        }
+        .option-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            color: #333;
+            font-weight: normal;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .option-button:hover:not(:disabled) {
+            background-color: #e9e9e9;
+            border-color: #bbb;
+        }
+        .option-button.selected {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            font-weight: bold;
+        }
+        .option-button.correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+            font-weight: bold;
+        }
+        .option-button.incorrect {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+            font-weight: bold;
+        }
+        .option-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        #submit-answer, #next-button {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #next-button {
+            background-color: #28a745;
+        }
+        #submit-answer:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        #next-button:hover:not(:disabled) {
+            background-color: #218838;
+        }
+        #submit-answer:disabled, #next-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #feedback-area {
+            font-weight: bold;
+            margin-top: 15px;
+            min-height: 1.2em;
+        }
+        hr {
+            border: 0;
+            height: 1px;
+            background: #ddd;
+            margin: 15px 0;
+        }
+        #progress, #timer {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        #score {
+            font-weight: bold;
+            color: #007bff;
+        }
+        #question-text {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+        #completion-message {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #28a745;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('home') }}">Utama</a>
+        {% if session.user %}
+            <span>Selamat datang, {{ session.username }}!</span>
+            <a href="{{ url_for('select_book') }}">Mula Kuiz</a>
+            <a href="{{ url_for('my_scores') }}">Skor Saya</a>
+            <a href="{{ url_for('global_leaderboard') }}">Papan Pendahulu Global</a>
+            <a href="{{ url_for('logout') }}">Log Keluar</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Log Masuk</a>
+            <a href="{{ url_for('signup') }}">Daftar</a>
+        {% endif %}
+    </nav>
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <div class="card">
+            <h2>Kuiz Alkitab: {{ book_name }}</h2>
+            <div id="quiz-container">
+                <div id="progress">Soalan <span id="question-number">1</span> daripada {{ total_questions }}</div>
+                <div id="timer">Masa baki: <span id="time-left">60</span> saat</div>
+                <hr>
+                <div id="question-area">
+                    <p id="question-text"></p>
+                    <div id="options"></div>
+                </div>
+                <button id="submit-answer" disabled>Hantar Jawapan</button>
+                <button id="next-button" disabled style="display: none;">Seterusnya</button>
+                <div id="feedback-area"></div>
+                <p>Skor semasa: <span id="score">0</span></p>
+                <p>Jumlah Soalan: {{ total_questions }}</p>
+                <div id="completion-message"></div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        © 2024 Aplikasi KUIZ ALKITAB
+    </footer>
+    <script>
+        const quizData = {{ questions|tojson|safe }};
+        const bookId = {{ book_id|tojson|safe }};
+        const totalQuestions = {{ total_questions|tojson|safe }};
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timerInterval;
+        let timeLeft = 60;
+        let answerSubmitted = false;
+
+        const questionTextElement = document.getElementById('question-text');
+        const optionsElement = document.getElementById('options');
+        const submitButton = document.getElementById('submit-answer');
+        const nextButton = document.getElementById('next-button');
+        const questionNumberElement = document.getElementById('question-number');
+        const timeLeftElement = document.getElementById('time-left');
+        const feedbackAreaElement = document.getElementById('feedback-area');
+        const scoreElement = document.getElementById('score');
+        const completionMessageElement = document.getElementById('completion-message');
+
+        function displayQuestion(index) {
+            if (index >= totalQuestions) {
+                completeQuiz();
+                return;
+            }
+
+            answerSubmitted = false;
+            feedbackAreaElement.textContent = '';
+            feedbackAreaElement.style.color = 'initial';
+            const question = quizData[index];
+
+            questionTextElement.textContent = question.question_text;
+            optionsElement.innerHTML = '';
+
+            const questionOptions = [
+                { key: 'A', text: question.option_a },
+                { key: 'B', text: question.option_b },
+                { key: 'C', text: question.option_c },
+                { key: 'D', text: question.option_d }
+            ];
+
+            questionOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = `${option.key}. ${option.text}`;
+                button.classList.add('option-button');
+                button.dataset.key = option.key;
+                button.onclick = () => handleOptionSelect(button, question.id, option.key);
+                optionsElement.appendChild(button);
+            });
+
+            questionNumberElement.textContent = index + 1;
+            submitButton.disabled = true;
+            submitButton.style.display = 'inline-block';
+            nextButton.disabled = true;
+            nextButton.style.display = 'none';
+            startTimer();
+        }
+
+        function handleOptionSelect(selectedButton, questionId, selectedAnswerKey) {
+            if (answerSubmitted) return;
+
+            document.querySelectorAll('.option-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+
+            selectedButton.classList.add('selected');
+            submitButton.disabled = false;
+            submitButton.onclick = () => submitAnswer(questionId, selectedAnswerKey);
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 60;
+            timeLeftElement.textContent = timeLeft;
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timeLeftElement.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    if (!answerSubmitted) {
+                        feedbackAreaElement.textContent = "Masa tamat!";
+                        feedbackAreaElement.style.color = 'orange';
+                        disableOptions();
+                        submitButton.style.display = 'none';
+                        nextButton.style.display = 'inline-block';
+                        nextButton.disabled = false;
+                        answerSubmitted = true;
+                    }
+                }
+            }, 1000);
+        }
+
+        function disableOptions() {
+            document.querySelectorAll('.option-button').forEach(btn => {
+                btn.disabled = true;
+            });
+        }
+
+        async function submitAnswer(questionId, selectedAnswer) {
+            if (answerSubmitted) return;
+            answerSubmitted = true;
+            clearInterval(timerInterval);
+            disableOptions();
+            submitButton.style.display = 'none';
+
+            feedbackAreaElement.textContent = 'Menyemak jawapan...';
+            feedbackAreaElement.style.color = 'grey';
+
+            try {
+                const response = await fetch('/submit-answer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question_id: questionId,
+                        answer: selectedAnswer
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'Gagal memproses respons pelayan.' }));
+                    if (response.status === 401 && errorData.redirect) {
+                        window.location.href = errorData.redirect;
+                        return;
+                    }
+                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const selectedButton = document.querySelector(`.option-button[data-key="${selectedAnswer}"]`);
+                const correctButton = document.querySelector(`.option-button[data-key="${result.correct_answer}"]`);
+
+                if (result.correct) {
+                    score++;
+                    scoreElement.textContent = score;
+                    feedbackAreaElement.textContent = 'Jawapan Betul!';
+                    feedbackAreaElement.style.color = 'green';
+                    if (correctButton) correctButton.classList.add('correct');
+                } else {
+                    feedbackAreaElement.textContent = `Jawapan Salah. Jawapan yang betul ialah ${result.correct_answer}.`;
+                    feedbackAreaElement.style.color = 'red';
+                    if (selectedButton) selectedButton.classList.add('incorrect');
+                    if (correctButton) correctButton.classList.add('correct');
+                }
+
+                nextQuestion();
+
+            } catch (error) {
+                console.error('Error submitting answer:', error);
+                feedbackAreaElement.textContent = `Ralat semasa menghantar jawapan: ${error.message}`;
+                feedbackAreaElement.style.color = 'red';
+                const selectedButton = document.querySelector(`.option-button[data-key="${selectedAnswer}"]`);
+                if (selectedButton) selectedButton.classList.add('incorrect');
+                nextButton.style.display = 'inline-block';
+                nextButton.disabled = false;
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < totalQuestions) {
+                displayQuestion(currentQuestionIndex);
+            } else {
+                completeQuiz();
+            }
+        }
+
+        nextButton.onclick = () => {
+            nextQuestion();
+        };
+
+        async function completeQuiz() {
+            clearInterval(timerInterval);
+            questionTextElement.style.display = 'none';
+            optionsElement.style.display = 'none';
+            submitButton.style.display = 'none';
+            nextButton.style.display = 'none';
+            feedbackAreaElement.style.display = 'none';
+            document.getElementById('timer').style.display = 'none';
+            document.getElementById('progress').style.display = 'none';
+
+            completionMessageElement.textContent = `Tahniah, anda telah selesai! Skor anda ialah ${score} daripada ${totalQuestions}.`;
+            completionMessageElement.style.display = 'block';
+
+            try {
+                const response = await fetch('/complete-quiz', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        book_id: bookId,
+                        score: score,
+                        total_questions: totalQuestions
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    setTimeout(() => {
+                        window.location.href = result.redirect;
+                    }, 3000);
+                } else {
+                    completionMessageElement.textContent += ` Namun, skor gagal disimpan: ${result.message}`;
+                    completionMessageElement.style.color = 'red';
+                }
+            } catch (error) {
+                console.error('Error completing quiz:', error);
+                completionMessageElement.textContent += ` Namun, skor gagal disimpan: Ralat rangkaian.`;
+                completionMessageElement.style.color = 'red';
+            }
+        }
+
+        if (totalQuestions > 0) {
+            displayQuestion(0);
+        } else {
+            questionTextElement.textContent = 'Tiada soalan untuk kuiz ini.';
+            const quizContainer = document.getElementById('quiz-container');
+            if (quizContainer) {
+                quizContainer.innerHTML = "Tiada soalan tersedia untuk kitab ini. Sila pilih kitab lain.";
+            }
+            setTimeout(() => {
+                window.location.href = "{{ url_for('select_book') }}";
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

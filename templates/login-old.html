@@ -1,0 +1,25 @@
+{# templates/login.html #}
+{% extends 'base.html' %}
+
+{% block title %}Log Masuk{% endblock %}
+
+{% block content %}
+<h2>Log Masuk</h2>
+<form method="post">
+{# 로그인 시 필요한 필드 #}
+<div>
+<label for="church_code">Kod Gereja:</label>
+<input type="text" id="church_code" name="church_code" required>
+</div>
+<div>
+<label for="username">Nama Pengguna:</label>
+<input type="text" id="username" name="username" required>
+</div>
+<div>
+<label for="password">Kata Laluan:</label>
+<input type="password" id="password" name="password" required>
+</div>
+<button type="submit">Log Masuk</button>
+</form>
+<p>Belum mempunyai akaun? <a href="{{ url_for('signup') }}">Daftar di sini</a>.</p>
+{% endblock %}

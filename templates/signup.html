@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">{# Link ke style.css #}
+    <style>
+        /* Kekalkan gaya inline atau pindahkan ke style.css */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Guna min-height */
+            margin: 0;
+        }
+        .container { /* Gunakan kelas container sebagai kad */
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%; /* Guna lebar penuh pada skrin kecil */
+            max-width: 400px; /* Hadkan lebar pada skrin besar */
+            text-align: center;
+            box-sizing: border-box; /* Sertakan padding dan border dalam lebar */
+        }
+        h2 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%; /* Guna lebar penuh */
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box; /* Sertakan padding dan border dalam lebar */
+            font-size: 16px;
+        }
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #28a745;
+            outline: none;
+            box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+        }
+        button[type="submit"] { /* Pilih butang submit */
+            width: 100%; /* Guna lebar penuh */
+            padding: 12px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        button[type="submit"]:hover {
+            background-color: #218838;
+        }
+         /* Gaya untuk mesej flash */
+        .flashes { /* Gunakan kelas .flashes untuk mesej flash */
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px; /* Ruang bawah */
+        }
+        .flashes li {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .flashes li.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .flashes li.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        p {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .footer {
+            margin-top: 20px;
+            color: #6c757d;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {# Paparkan mesej flash di sini #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <h2>Daftar</h2>
+        <form method="POST" action="{{ url_for('signup') }}">
+            {# Label dan Input menggunakan gaya dari style.css atau inline #}
+            <div>
+                <label for="church_code">Kod Gereja:</label>
+                <input type="text" id="church_code" name="church_code" required>
+            </div>
+            <div>
+                <label for="username">Nama Pengguna:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div>
+                <label for="password">Kata Laluan:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            {# Gunakan kelas button dari style.css #}
+            <button type="submit" class="button">Daftar</button>
+        </form>
+        <p>Sudah mempunyai akaun? <a href="{{ url_for('login') }}">Log Masuk di sini</a></p>
+        <div class="footer">
+            © 2024 Aplikasi KUIZ ALKITAB
+        </div>
+    </div>
+</body>
+</html>

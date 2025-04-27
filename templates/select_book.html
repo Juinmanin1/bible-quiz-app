@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pilih Kitab untuk KUIZ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Styling tambahan untuk grid butang kitab */
+        .book-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            max-width: 1200px;
+            margin: 20px auto; /* Tambah margin atas/bawah */
+            padding: 0 20px; /* Tambah padding kiri/kanan */
+        }
+        .book-button {
+            padding: 15px 10px; /* Padding lebih besar */
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem; /* Saiz font standard */
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            text-align: center;
+        }
+        .book-button:hover {
+            background-color: #0056b3;
+        }
+         main h2 { /* Gaya untuk tajuk di dalam main */
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('home') }}">Utama</a>
+        {% if session.user %}
+            <span>Selamat datang, {{ session.username }}!</span>
+             <a href="{{ url_for('select_book') }}">Mula Kuiz</a>{# Tambah pautan Mula Kuiz #}
+            <a href="{{ url_for('my_scores') }}">Skor Saya</a>
+             <a href="{{ url_for('global_leaderboard') }}">Papan Pendahulu Global</a>{# Pautan baru #}
+            <a href="{{ url_for('logout') }}">Log Keluar</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Log Masuk</a>
+            <a href="{{ url_for('signup') }}">Daftar</a>
+        {% endif %}
+    </nav>
+     <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <h2>Pilih Kitab untuk KUIZ</h2>
+        <div class="book-grid">
+            {% for book in books %}
+                <button class="book-button" onclick="window.location.href='{{ url_for('quiz', book_id=book.id) }}'">
+                    {{ book.name }}
+                </button>
+            {% endfor %}
+        </div>
+     </main>
+    <footer>
+        © 2024 Aplikasi KUIZ ALKITAB
+    </footer>
+</body>
+</html>

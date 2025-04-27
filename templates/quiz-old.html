@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuiz: {{ book_name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #343a40;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+        .navbar span {
+            color: #fff;
+        }
+        .container {
+            padding: 20px;
+            text-align: center;
+        }
+        .card {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        #progress, #timer {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        #question-text {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .option-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 2px solid #333333;
+            border-radius: 5px;
+            background-color: #e6e6e6;
+            color: #000000;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .option-button:hover {
+            background-color: #cccccc;
+        }
+        .option-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .option-button.selected {
+            background-color: #999999;
+            color: #ffffff;
+        }
+        .option-button.correct {
+            background-color: #28a745;
+            border-color: #1e7e34;
+            color: #ffffff;
+        }
+        .option-button.incorrect {
+            background-color: #dc3545;
+            border-color: #c82333;
+            color: #ffffff;
+        }
+        #submit-answer, #next-button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #submit-answer:disabled, #next-button:disabled {
+            background-color: #999999;
+            cursor: not-allowed;
+        }
+        #submit-answer:hover:not(:disabled), #next-button:hover:not(:disabled) {
+            background-color: #218838;
+        }
+        #feedback-area {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .footer {
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            color: #6c757d;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="{{ url_for('home') }}">Utama</a>
+        <div>
+            <span>Selamat datang, {{ session.username }}!</span>
+            <a href="{{ url_for('my_scores') }}">Skor Saya</a>
+            <a href="{{ url_for('logout') }}">Log Keluar</a>
+        </div>
+    </div>
+    <div class="container">
+        <div class="card">
+            <h2>Kuiz Alkitab: {{ book_name }}</h2>
+            <div id="quiz-container">
+                <div id="progress">Soalan <span id="question-number">1</span> daripada {{ total_questions }}</div>
+                <div id="timer">Masa baki: <span id="time-left">60</span> saat</div>
+                <hr>
+                <div id="question-area">
+                    <p id="question-text"></p>
+                    <div id="options"></div>
+                </div>
+                <button id="submit-answer" disabled>Hantar Jawapan</button>
+                <button id="next-button" disabled style="display: none;">Seterusnya</button>
+                <div id="feedback-area" style="margin-top: 10px;"></div>
+                <p>Skor semasa: <span id="score">0</span></p>
+                <p>Jumlah Soalan: {{ total_questions }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        © 2024 Aplikasi KUIZ ALKITAB
+    </div>
+    <script>
+        const quizData = {{ questions|tojson|safe }};
+        const bookId = {{ book_id|tojson|safe }};
+        const totalQuestions = {{ total_questions|tojson|safe }};
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timerInterval;
+        let timeLeft = 60;
+        let answerSubmitted = false;
+
+        const questionTextElement = document.getElementById('question-text');
+        const optionsElement = document.getElementById('options');
+        const submitButton = document.getElementById('submit-answer');
+        const nextButton = document.getElementById('next-button');
+        const questionNumberElement = document.getElementById('question-number');
+        const timeLeftElement = document.getElementById('time-left');
+        const feedbackAreaElement = document.getElementById('feedback-area');
+        const scoreElement = document.getElementById('score');
+
+        function displayQuestion(index) {
+            if (index >= totalQuestions) {
+                completeQuiz();
+                return;
+            }
+
+            answerSubmitted = false;
+            feedbackAreaElement.textContent = '';
+            const question = quizData[index];
+            questionTextElement.textContent = question.question_text;
+            optionsElement.innerHTML = '';
+
+            const options = [
+                { key: 'A', text: question.option_a },
+                { key: 'B', text: question.option_b },
+                { key: 'C', text: question.option_c },
+                { key: 'D', text: question.option_d }
+            ];
+
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = `${option.key}. ${option.text}`;
+                button.classList.add('option-button');
+                button.dataset.key = option.key;
+                button.onclick = () => handleOptionSelect(button, question.id, option.key);
+                optionsElement.appendChild(button);
+            });
+
+            questionNumberElement.textContent = index + 1;
+            submitButton.disabled = true;
+            submitButton.style.display = 'inline-block';
+            nextButton.disabled = true;
+            nextButton.style.display = 'none';
+            startTimer();
+        }
+
+        function handleOptionSelect(selectedButton, questionId, selectedAnswerKey) {
+            if (answerSubmitted) return;
+
+            document.querySelectorAll('.option-button').forEach(btn => {
+                btn.classList.remove('selected');
+                btn.disabled = true;
+            });
+            selectedButton.classList.add('selected');
+
+            submitButton.disabled = false;
+            submitButton.onclick = () => submitAnswer(questionId, selectedAnswerKey);
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 60;
+            timeLeftElement.textContent = timeLeft;
+            answerSubmitted = false;
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timeLeftElement.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    if (!answerSubmitted) {
+                        feedbackAreaElement.textContent = "Masa tamat!";
+                        feedbackAreaElement.style.color = 'orange';
+                        disableOptions();
+                        submitButton.style.display = 'none';
+                        nextButton.style.display = 'inline-block';
+                        nextButton.disabled = false;
+                    }
+                }
+            }, 1000);
+        }
+
+        function disableOptions() {
+            document.querySelectorAll('.option-button').forEach(btn => {
+                btn.disabled = true;
+            });
+        }
+
+        async function submitAnswer(questionId, selectedAnswer) {
+            if (answerSubmitted) return;
+            answerSubmitted = true;
+            clearInterval(timerInterval);
+            disableOptions();
+            submitButton.style.display = 'none';
+            nextButton.style.display = 'inline-block';
+
+            feedbackAreaElement.textContent = 'Menyemak jawapan...';
+            feedbackAreaElement.style.color = 'grey';
+
+            try {
+                const response = await fetch('/submit-answer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question_id: questionId,
+                        answer: selectedAnswer
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.correct) {
+                    score++;
+                    scoreElement.textContent = score;
+                    feedbackAreaElement.textContent = 'Jawapan Betul!';
+                    feedbackAreaElement.style.color = 'green';
+                    const correctButton = document.querySelector(`.option-button[data-key="${result.correct_answer}"]`);
+                    if (correctButton) correctButton.classList.add('correct');
+                } else {
+                    feedbackAreaElement.textContent = `Jawapan Salah. Jawapan yang betul ialah ${result.correct_answer}.`;
+                    feedbackAreaElement.style.color = 'red';
+                    if (selectedAnswer) {
+                        const incorrectButton = document.querySelector(`.option-button[data-key="${selectedAnswer}"]`);
+                        if (incorrectButton) incorrectButton.classList.add('incorrect');
+                    }
+                    const correctButton = document.querySelector(`.option-button[data-key="${result.correct_answer}"]`);
+                    if (correctButton) correctButton.classList.add('correct');
+                }
+
+            } catch (error) {
+                console.error('Error submitting answer:', error);
+                feedbackAreaElement.textContent = 'Ralat semasa menghantar jawapan.';
+                feedbackAreaElement.style.color = 'red';
+            } finally {
+                nextButton.disabled = false;
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < totalQuestions) {
+                displayQuestion(currentQuestionIndex);
+            } else {
+                completeQuiz();
+            }
+        }
+
+        nextButton.onclick = () => {
+            nextQuestion();
+        };
+
+        async function completeQuiz() {
+            clearInterval(timerInterval);
+            questionTextElement.textContent = 'Kuiz Selesai!';
+            optionsElement.innerHTML = '';
+            submitButton.style.display = 'none';
+            nextButton.style.display = 'none';
+            feedbackAreaElement.textContent = `Skor Akhir Anda: ${score} / ${totalQuestions}`;
+
+            try {
+                const response = await fetch('/complete-quiz', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        book_id: bookId,
+                        score: score,
+                        total_questions: totalQuestions
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'Gagal memproses respons pelayan.' }));
+                    if (response.status === 401 && errorData.redirect) {
+                        window.location.href = errorData.redirect;
+                        return;
+                    }
+                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = result.redirect;
+                } else {
+                    throw new Error(result.message || 'Gagal menyimpan skor.');
+                }
+
+            } catch (error) {
+                console.error('Error completing quiz:', error);
+                const currentFeedback = feedbackAreaElement.textContent;
+                feedbackAreaElement.textContent = `${currentFeedback}\nRalat semasa menyimpan skor: ${error.message}`;
+                feedbackAreaElement.style.color = 'red';
+            }
+        }
+
+        if (totalQuestions > 0) {
+            displayQuestion(0);
+        } else {
+            questionTextElement.textContent = 'Tiada soalan untuk kuiz ini.';
+            const quizContainer = document.getElementById('quiz-container');
+            if (quizContainer) {
+                quizContainer.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
